@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+.env*.local
+
+# local database
+.data
+
+# admin-uploaded product images
+public/uploads/*
+!public/uploads/.gitkeep
