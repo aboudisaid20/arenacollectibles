@@ -53,8 +53,24 @@ rather than seed itself with the development password. It is read only
 when the database is empty; changing it later does not change an
 existing login.
 
-Test keys mean nobody can actually pay. Live keys require an activated
-Stripe account.
+### Payments: test mode
+
+This deployment runs on Stripe **test** keys. The checkout works end to
+end — address, card entry, processing state, order confirmation with a
+tracking number, stock decrementing, the order appearing in admin — but
+no money moves and no real card is accepted.
+
+Test cards (any future expiry, any CVC, any postcode):
+
+| Number | Result |
+| --- | --- |
+| `4242 4242 4242 4242` | succeeds |
+| `4000 0000 0000 0002` | declined |
+| `4000 0025 0000 3155` | requires 3D Secure |
+
+Going live later is a key swap plus a Stripe account activation: replace
+both variables with the `sk_live_` / `pk_live_` pair and redeploy. No
+code changes.
 
 ## 5. First deploy
 
@@ -84,7 +100,9 @@ HTTPS is issued automatically once DNS resolves. Usually 15–30 minutes.
 ## Before sharing the link
 
 - **Roll the Stripe keys** if they have ever been pasted into a chat,
-  ticket or commit.
+  ticket or commit. Test keys cannot move money, but they can read your
+  test data and run up API activity under your account — worth a fresh
+  pair from the dashboard regardless.
 - **Confirm image rights.** The player and department photography is
   press and product work. Commercial use of a recognisable athlete
   generally needs a photo licence *and* personality rights.
