@@ -127,35 +127,50 @@ Railway gives you a `*.up.railway.app` URL. Check before touching DNS:
 
 The domain is **arenacollectibles.co**, registered at Namecheap.
 
-In Railway: **Settings → Networking → Custom Domain**. Add both
-`arenacollectibles.co` and `www.arenacollectibles.co`. Railway returns a
-target hostname ending in `.up.railway.app` for each — copy them.
+### In Railway
 
-Then Namecheap → **Domain List → Manage → Advanced DNS**. Delete the two
-parking records Namecheap adds by default (a CNAME on `www` pointing at
-`parkingpage.namecheap.com`, and a URL Redirect on `@`), then add:
+Service → **Settings** → **Public Networking** → **+ Custom Domain**.
+Add `arenacollectibles.co`, then repeat for `www.arenacollectibles.co`.
 
-| Type | Host | Value | TTL |
-| --- | --- | --- | --- |
-| ALIAS Record | `@` | the Railway target for the root | Automatic |
-| CNAME Record | `www` | the Railway target for www | Automatic |
+Railway returns **two** records per domain, and both are required:
 
-A CNAME is not legal at the zone apex, which is what the ALIAS record is
-for. Namecheap supports it; several registrars do not.
+- a **CNAME** target, something like `g05ns7.up.railway.app` — routes traffic
+- a **TXT** record — proves you own the domain
 
-Leave **Namecheap BasicDNS** as the nameserver set. Do not switch to
-custom nameservers — the records above are all that is needed.
+The TXT is not optional. Railway is explicit: "The domain will not verify
+with only the CNAME in place", and without it "requests to your custom
+domain will return a 404 error even after the CNAME resolves". A 404 on a
+domain that clearly resolves is almost always the missing TXT.
 
-HTTPS is issued automatically once DNS resolves, usually within 15–30
-minutes. Check with:
+### In Namecheap
+
+**Domain List → Manage → Advanced DNS**. Delete the two parking records
+Namecheap ships with (a CNAME on `www` to `parkingpage.namecheap.com`,
+and a URL Redirect on `@`), then add:
+
+| Type | Host | Value |
+| --- | --- | --- |
+| ALIAS Record | `@` | Railway's CNAME target for the root |
+| CNAME Record | `www` | Railway's CNAME target for www |
+| TXT Record | as Railway states | as Railway states |
+
+A CNAME is not legal at the zone apex, which is why the root uses an
+ALIAS. Namecheap is one of the providers Railway names as supporting
+this, alongside Cloudflare and DNSimple — several registrars do not, and
+there the fix is moving nameservers to Cloudflare.
+
+Leave the nameservers on Namecheap BasicDNS.
+
+Wait for the green check beside the domain in Railway. HTTPS is issued
+automatically once it verifies, usually within 15–30 minutes. Check with:
 
 ```bash
 dig +short arenacollectibles.co
 dig +short www.arenacollectibles.co
+dig +short TXT arenacollectibles.co
 ```
 
-Both should return a Railway address. Until they do, the site answers on
-its `*.up.railway.app` URL.
+Until DNS resolves, the site answers on its `*.up.railway.app` URL.
 
 Set `NEXT_PUBLIC_SITE_URL=https://arenacollectibles.co` in Railway once
 the domain resolves, so link previews and canonical URLs use it.
