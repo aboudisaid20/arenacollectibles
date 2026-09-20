@@ -1,7 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, getCurrentUser } from "@/lib/auth";
+import {
+  createUser, setUserRole, setUserPassword, deleteUser, changeOwnPassword,
+  type Role,
+} from "@/lib/users";
 import {
   setOrderStatus, updateInventory, ORDER_STATUSES,
   createProduct, deleteProduct, setProductHidden, productExists,
@@ -293,5 +297,85 @@ export async function deleteProductAction(slug: string): Promise<ActionResult> {
   revalidatePath("/admin/inventory");
   revalidatePath("/shop");
   revalidatePath("/");
+  return { ok: true };
+}
+
+/* ---------- team ---------- */
+
+export async function createUserAction(input: {
+  email: string;
+  name: string;
+  role: string;
+  password: string;
+}): Promise<ActionResult> {
+  await requireAdmin();
+
+  const res = createUser({
+    email: input.email,
+    name: input.name,
+    role: input.role as Role,
+    password: input.password,
+  });
+  if (!res.ok) return { ok: false, error: res.error };
+
+  revalidatePath("/admin/team");
+  return { ok: true };
+}
+
+export async function setUserRoleAction(
+  id: string,
+  role: string,
+): Promise<ActionResult> {
+  // The acting user is read from the session, never from the form — that
+  // is what makes "you cannot demote yourself" hold.
+  const me = await requireAdmin();
+
+  const res = setUserRole(id, role as Role, me.id);
+  if (!res.ok) return { ok: false, error: res.error };
+
+  revalidatePath("/admin/team");
+  return { ok: true };
+}
+
+export async function setUserPasswordAction(
+  id: string,
+  password: string,
+): Promise<ActionResult> {
+  await requireAdmin();
+
+  const res = setUserPassword(id, password);
+  if (!res.ok) return { ok: false, error: res.error };
+
+  revalidatePath("/admin/team");
+  return { ok: true };
+}
+
+export async function deleteUserAction(id: string): Promise<ActionResult> {
+  const me = await requireAdmin();
+
+  const res = deleteUser(id, me.id);
+  if (!res.ok) return { ok: false, error: res.error };
+
+  revalidatePath("/admin/team");
+  return { ok: true };
+}
+
+/**
+ * Changing your own password.
+ *
+ * Deliberately not admin-gated: every signed-in account can do this for
+ * itself, and the id comes from the session so one account can never
+ * target another.
+ */
+export async function changeOwnPasswordAction(input: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<ActionResult> {
+  const me = await getCurrentUser();
+  if (!me) return { ok: false, error: "Sign in first." };
+
+  const res = changeOwnPassword(me.id, input.currentPassword, input.newPassword);
+  if (!res.ok) return { ok: false, error: res.error };
+
   return { ok: true };
 }
