@@ -4,17 +4,29 @@ import Link from "next/link";
 import { ProductDetail } from "@/components/ProductDetail";
 import { ProductCard } from "@/components/ProductCard";
 import { RevealGrid } from "@/components/motion";
-import { liveProducts, liveProduct, liveSlugs } from "@/lib/store";
+import { liveProducts, liveProduct } from "@/lib/store";
 import { formatPrice } from "@/lib/types";
 
 type Params = { params: Promise<{ slug: string }> };
 
-// Slugs are known up front, but stock/price come from the database, so
-// each page is rendered per request rather than baked at build time.
+// Every page is rendered per request: price, stock and the catalogue
+// itself all live in the database and change without a deploy.
 export const dynamic = "force-dynamic";
 
+/**
+ * Deliberately empty.
+ *
+ * This used to list every slug, which meant the build opened the
+ * database — and on a host where the volume only mounts at runtime that
+ * is a different, empty database, so the build was seeding a throwaway
+ * file and baking stale slugs into the output. Worse, seeding in
+ * production demands ADMIN_PASSWORD, which failed the build outright.
+ *
+ * Returning nothing means pages are rendered on first request instead,
+ * which is what `force-dynamic` above does anyway.
+ */
 export function generateStaticParams() {
-  return liveSlugs().map((slug) => ({ slug }));
+  return [];
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {

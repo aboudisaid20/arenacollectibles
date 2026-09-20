@@ -279,7 +279,13 @@ function adminCredentials(): { email: string; password: string } {
   const password = process.env.ADMIN_PASSWORD?.trim();
 
   if (!password) {
-    if (process.env.NODE_ENV === "production") {
+    // `next build` runs with NODE_ENV=production, but a build is not a
+    // deployment: there is no volume mounted and nothing being served.
+    // Failing there turned a missing variable into a failed build rather
+    // than a clear error on first boot.
+    const building = process.env.NEXT_PHASE === "phase-production-build";
+
+    if (process.env.NODE_ENV === "production" && !building) {
       throw new Error(
         "ADMIN_PASSWORD is not set. Refusing to seed a production database " +
           "with the development password.",
