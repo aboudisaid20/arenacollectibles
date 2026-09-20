@@ -52,6 +52,15 @@
 }
 
 @layer base {
+  /* Belt and braces alongside the meta tag in layout.tsx: some engines
+     read the CSS property and ignore the meta, and a forced-dark pass on
+     an already-dark site produces washed-out colour rather than anything
+     useful. This also gives native controls — selects, scrollbars, the
+     colour picker in the admin form — their dark rendering. */
+  :root {
+    color-scheme: dark;
+  }
+
   * {
     border-color: var(--color-line);
   }

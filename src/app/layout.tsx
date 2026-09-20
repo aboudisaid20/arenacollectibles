@@ -59,6 +59,20 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#000000",
+  /**
+   * Declares the page as already dark.
+   *
+   * Without this, browsers that force a dark theme — Samsung Internet in
+   * particular, and Chrome's auto-dark on Android — assume the page is a
+   * light site and run their own inversion over it. On a design that is
+   * already black with a neon accent the result is washed-out, shifted
+   * colour rather than anything darker.
+   *
+   * It also makes the browser render native controls in dark: the select
+   * dropdowns in the shop filters and the admin panel would otherwise
+   * open as light popups over a black page.
+   */
+  colorScheme: "dark",
   // Zoom is deliberately left enabled.
 };
 
