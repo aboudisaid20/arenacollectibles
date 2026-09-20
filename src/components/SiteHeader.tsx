@@ -101,7 +101,12 @@ export function SiteHeader({ isAdmin = false }: { isAdmin?: boolean }) {
             }}
           />
         )}
-        <div className="container-page pointer-events-auto grid h-[var(--header-h)] grid-cols-[1fr_auto_1fr] items-center">
+        {/* Full-bleed on purpose, unlike container-page, which caps at
+            90rem and centres — on a monitor wider than that it left Menu
+            and Cart floating inland instead of sitting on the edges.
+            The padding matches container-page's scale so they line up
+            with page content at narrower widths. */}
+        <div className="pointer-events-auto grid h-[var(--header-h)] grid-cols-[1fr_auto_1fr] items-center px-4 md:px-7 xl:px-10">
           {/* Left — menu */}
           <div className="flex justify-start">
             <button
