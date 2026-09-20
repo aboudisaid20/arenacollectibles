@@ -71,6 +71,7 @@ the database and uploads both follow it.
 | `ADMIN_PASSWORD` | 12+ characters, from a password manager |
 | `NEXT_PUBLIC_SITE_URL` | `https://arenacollectibles.co` (add once DNS resolves) |
 | `DATA_DIR` | only if the volume is mounted somewhere other than `/app/.data` |
+| `PORT` | `3000` — must match the port given to the proxy |
 
 `ADMIN_PASSWORD` is mandatory in production — the app refuses to boot
 rather than seed itself with the development password. It is read only
@@ -96,7 +97,24 @@ Going live later is a key swap plus a Stripe account activation: replace
 both variables with the `sk_live_` / `pk_live_` pair and redeploy. No
 code changes.
 
-## 5. First deploy
+## 5. Port
+
+Railway injects a `PORT` variable and its proxy asks which port to route
+to. The two have to agree or you get "Application failed to respond".
+
+Enter **3000** when prompted, and add `PORT=3000` alongside the other
+variables so nothing is left to inference.
+
+The start command binds explicitly:
+
+```
+next start -H 0.0.0.0 -p ${PORT:-3000}
+```
+
+`0.0.0.0` matters — a server bound to localhost is unreachable from
+outside its own container, which is the usual cause of a 502 here.
+
+## 6. First deploy
 
 Railway gives you a `*.up.railway.app` URL. Check before touching DNS:
 
@@ -105,7 +123,7 @@ Railway gives you a `*.up.railway.app` URL. Check before touching DNS:
 - adding a product in admin, then redeploying, keeps it (proves the volume)
 - uploading a photo, then redeploying, still shows it
 
-## 6. Domain
+## 7. Domain
 
 The domain is **arenacollectibles.co**, registered at Namecheap.
 
