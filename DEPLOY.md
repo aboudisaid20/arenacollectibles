@@ -22,7 +22,13 @@ Nothing secret is committed — `.gitignore` already excludes `.env*.local`,
 ## 2. Create the service
 
 In Railway: **New Project → Deploy from GitHub repo**, pick the repo.
-It reads `railway.json` and builds with `npm ci && npm run build`.
+It reads `railway.json` and builds with `npm run build`.
+
+The build command deliberately does not run `npm ci`. Nixpacks installs
+dependencies in its own phase first, and `npm ci` deletes node_modules
+wholesale — including the build cache Nixpacks mounts inside it, which
+fails with `EBUSY: resource busy or locked, rmdir
+'/app/node_modules/.cache'`.
 
 ## 3. Attach a volume — do not skip this
 
