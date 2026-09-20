@@ -34,7 +34,12 @@ fails with `EBUSY: resource busy or locked, rmdir
 
 Railway allows exactly one volume per service — "Each service can only
 have a single volume" — so the database and the uploaded photographs
-share it. **Settings → Volumes → Add Volume**, mount path:
+share it.
+
+Volumes are created from the **project canvas**, not from the service's
+Settings tab. Press **⌘K** and type "volume", or right-click empty space
+on the canvas. Railway then asks which service to attach it to, and what
+mount path to use:
 
 ```
 /app/.data
