@@ -6,12 +6,14 @@ import {
   ArrowLeft, Check, Minus, Plus, ShieldCheck, Truck, ArrowsCounterClockwise,
 } from "@phosphor-icons/react";
 import { ProductArtwork } from "./ProductArtwork";
+import { ProductGallery } from "./ProductGallery";
 import { Reveal } from "./motion";
 import { Chip, StockBadge, SpecRow, Button } from "./ui";
 import { useCart } from "@/lib/cart";
 import { CATEGORY_LABEL, formatPrice, type Product } from "@/lib/types";
 
 export function ProductDetail({ product }: { product: Product }) {
+  const photos = product.images ?? (product.image ? [product.image] : []);
   const { add } = useCart();
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -37,18 +39,30 @@ export function ProductDetail({ product }: { product: Product }) {
         <div className="mt-6 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
           {/* Artwork */}
           <div className="lg:sticky lg:top-[108px] lg:self-start">
-            <div className="relative overflow-hidden border border-line bg-pitch">
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: `radial-gradient(58% 48% at 50% 36%, ${product.accent}2e 0%, transparent 72%)`,
-                }}
-                aria-hidden="true"
-              />
-              <div className="relative aspect-square px-10 py-8 sm:px-16 sm:py-12">
-                <ProductArtwork product={product} className="h-full w-full" />
-              </div>
-              <div className="absolute left-4 top-4 flex gap-2">
+            {/* Photographs when there are any, generated artwork when
+                there are not. The badges sit above either. */}
+            <div className="relative">
+              {photos.length > 0 ? (
+                <ProductGallery
+                  images={photos}
+                  alt={`${product.subject} — ${product.name}`}
+                  accent={product.accent}
+                />
+              ) : (
+                <div className="relative overflow-hidden border border-line bg-pitch">
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background: `radial-gradient(58% 48% at 50% 36%, ${product.accent}2e 0%, transparent 72%)`,
+                    }}
+                    aria-hidden="true"
+                  />
+                  <div className="relative aspect-square px-10 py-8 sm:px-16 sm:py-12">
+                    <ProductArtwork product={product} className="h-full w-full" />
+                  </div>
+                </div>
+              )}
+              <div className="pointer-events-none absolute left-4 top-4 z-[2] flex gap-2">
                 <Chip tone="neutral">{CATEGORY_LABEL[product.category]}</Chip>
                 {product.hot && <span className="sticker px-2 py-0.5 text-xs">Hot</span>}
               </div>

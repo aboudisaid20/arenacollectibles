@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import {
   Check, WarningCircle, FloppyDisk, UploadSimple, Trash, CircleNotch,
+  CaretLeft, CaretRight,
 } from "@phosphor-icons/react";
 import {
   updateInventoryAction, setProductHiddenAction, deleteProductAction,
@@ -98,6 +99,24 @@ export function InventoryPanel({
     });
   };
 
+  /** Reorders one photo. Moving to the front makes it the main image. */
+  const moveImage = async (slug: string, url: string, dir: -1 | 1) => {
+    setError(null);
+    setUploading(slug);
+    try {
+      const res = await fetch(
+        `/api/admin/upload?slug=${encodeURIComponent(slug)}&url=${encodeURIComponent(url)}&dir=${dir}`,
+        { method: "PATCH" },
+      );
+      if (!res.ok) throw new Error("Could not reorder that photo.");
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not reorder that photo.");
+    } finally {
+      setUploading(null);
+    }
+  };
+
   const upload = async (slug: string, file: File) => {
     setError(null);
     setUploading(slug);
@@ -118,13 +137,13 @@ export function InventoryPanel({
     }
   };
 
-  const removeImage = async (slug: string) => {
+  const removeImage = async (slug: string, url?: string) => {
     setError(null);
     setUploading(slug);
     try {
-      const res = await fetch(`/api/admin/upload?slug=${encodeURIComponent(slug)}`, {
-        method: "DELETE",
-      });
+      const qs = new URLSearchParams({ slug });
+      if (url) qs.set("url", url);
+      const res = await fetch(`/api/admin/upload?${qs}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Could not remove that image.");
       router.refresh();
     } catch (e) {
@@ -320,7 +339,14 @@ export function InventoryPanel({
                 {/* Thumbnail doubles as the upload target. */}
                 <div className="relative h-14 w-14 shrink-0 overflow-hidden border border-line bg-pitch">
                   {p.image ? (
-                    <Image src={p.image} alt="" fill sizes="56px" className="object-cover" />
+                    <>
+                      <Image src={p.image} alt="" fill sizes="56px" className="object-cover" />
+                      {(p.images?.length ?? 0) > 1 && (
+                        <span className="tnum absolute bottom-0 right-0 bg-void/85 px-1 font-mono text-[0.55rem] text-volt">
+                          {p.images!.length}
+                        </span>
+                      )}
+                    </>
                   ) : (
                     <span className="flex h-full w-full items-center justify-center font-mono text-[0.55rem] uppercase text-steel">
                       Vector
@@ -404,11 +430,15 @@ export function InventoryPanel({
                     id={`img-${p.slug}`}
                     type="file"
                     accept="image/jpeg,image/png,image/webp,image/avif"
+                    multiple
                     className="sr-only"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) upload(p.slug, f);
+                    onChange={async (e) => {
+                      // Sequential, not parallel: each upload reads the
+                      // current list and appends, so firing them together
+                      // would have them overwrite each other.
+                      const files = Array.from(e.target.files ?? []);
                       e.target.value = "";
+                      for (const f of files) await upload(p.slug, f);
                     }}
                   />
                   <button
@@ -422,7 +452,7 @@ export function InventoryPanel({
                     ) : (
                       <UploadSimple size={13} weight="bold" aria-hidden="true" />
                     )}
-                    {p.image ? "Replace" : "Photo"}
+                    {(p.images?.length ?? 0) > 0 ? "Add photo" : "Photo"}
                     <span className="sr-only"> for {p.subject}</span>
                   </button>
                   {p.image && (
@@ -430,6 +460,7 @@ export function InventoryPanel({
                       type="button"
                       onClick={() => removeImage(p.slug)}
                       disabled={uploading === p.slug}
+                      title="Remove all photos"
                       className="flex h-11 w-11 cursor-pointer items-center justify-center border border-line text-steel transition-colors hover:border-flag hover:text-flag disabled:cursor-not-allowed"
                     >
                       <Trash size={13} weight="bold" aria-hidden="true" />
@@ -491,6 +522,55 @@ export function InventoryPanel({
                   </button>
                 </div>
               </div>
+
+              {/* The full set, in gallery order. The first is what shop
+                  tiles and cart lines use, so the arrows are how you
+                  choose the main photo. */}
+              {(p.images?.length ?? 0) > 1 && (
+                <ul className="mt-3 flex flex-wrap gap-2 border-t border-line pt-3">
+                  {p.images!.map((src, i) => (
+                    <li key={src} className="relative">
+                      <div className="relative h-16 w-16 overflow-hidden border border-line bg-pitch">
+                        <Image src={src} alt="" fill sizes="64px" className="object-cover" />
+                        {i === 0 && (
+                          <span className="absolute inset-x-0 bottom-0 bg-volt/90 text-center font-mono text-[0.5rem] uppercase tracking-wide text-void">
+                            Main
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1 flex justify-center gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => moveImage(p.slug, src, -1)}
+                          disabled={i === 0 || uploading === p.slug}
+                          className="flex h-7 w-7 cursor-pointer items-center justify-center border border-line text-steel transition-colors hover:border-volt hover:text-volt disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          <span className="sr-only">Move photo {i + 1} earlier</span>
+                          <CaretLeft size={11} weight="bold" aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveImage(p.slug, src, 1)}
+                          disabled={i === p.images!.length - 1 || uploading === p.slug}
+                          className="flex h-7 w-7 cursor-pointer items-center justify-center border border-line text-steel transition-colors hover:border-volt hover:text-volt disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          <span className="sr-only">Move photo {i + 1} later</span>
+                          <CaretRight size={11} weight="bold" aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeImage(p.slug, src)}
+                          disabled={uploading === p.slug}
+                          className="flex h-7 w-7 cursor-pointer items-center justify-center border border-line text-steel transition-colors hover:border-flag hover:text-flag disabled:cursor-not-allowed"
+                        >
+                          <span className="sr-only">Remove photo {i + 1}</span>
+                          <Trash size={11} weight="bold" aria-hidden="true" />
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           );
         })}

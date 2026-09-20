@@ -62,8 +62,11 @@ export interface ProductBase {
   provenance?: ProvenanceEvent[];
   /** Drives generated artwork hue when there is no photograph. */
   accent: string;
-  /** Uploaded photograph. Falls back to generated artwork when absent. */
+  /** First uploaded photograph. Falls back to generated artwork when
+   *  absent. Always `images[0]` when there are any. */
   image?: string;
+  /** Every uploaded photograph, in gallery order. */
+  images?: string[];
   featured?: boolean;
   hot?: boolean;
   /** Manufacturer. Cards and sealed wax only — drives the brand filter. */

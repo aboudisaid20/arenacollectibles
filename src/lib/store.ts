@@ -99,7 +99,12 @@ function rowToProduct(r: ProductRow): Product {
     ...(r.condition ? { condition: r.condition } : {}),
     ...(r.featured ? { featured: true } : {}),
     ...(r.hot ? { hot: true } : {}),
-    ...(r.image_url ? { image: r.image_url } : {}),
+    // `image` stays as the first photograph so every existing caller —
+    // tiles, cart lines, admin thumbnails — keeps working unchanged.
+    ...(() => {
+      const images = parseImages(r.image_url);
+      return images.length ? { images, image: images[0] } : {};
+    })(),
     ...(r.created_at ? { addedAt: r.created_at } : {}),
   } as Product;
 }
@@ -150,11 +155,86 @@ export function liveSlugs(): string[] {
   ).map((r) => r.slug);
 }
 
-export function setProductImage(slug: string, url: string | null): boolean {
+/**
+ * How many photographs a product may carry.
+ *
+ * Enough for a front, a back, the grader\'s label and a couple of detail
+ * shots. Past that the gallery becomes a scroll and the page slows down
+ * for no real gain.
+ */
+export const MAX_PRODUCT_IMAGES = 8;
+
+/**
+ * Reads the image column into a list.
+ *
+ * The column held a single path before galleries existed, so a bare
+ * string is still valid and is read as a one-item list. That is the whole
+ * migration — no schema change, and nothing already uploaded is lost.
+ */
+export function parseImages(raw: string | null): string[] {
+  if (!raw) return [];
+  const t = raw.trim();
+  if (!t) return [];
+  if (!t.startsWith("[")) return [t];
+  try {
+    const v = JSON.parse(t);
+    return Array.isArray(v) ? v.filter((x) => typeof x === "string" && x) : [];
+  } catch {
+    return [t];
+  }
+}
+
+function writeImages(slug: string, images: string[]): boolean {
+  const clean = images.filter(Boolean).slice(0, MAX_PRODUCT_IMAGES);
   const res = getDb()
     .prepare("UPDATE products SET image_url = ?, updated_at = ? WHERE slug = ?")
-    .run(url, new Date().toISOString(), slug);
+    .run(clean.length ? JSON.stringify(clean) : null, new Date().toISOString(), slug);
   return Number(res.changes) > 0;
+}
+
+export function productImages(slug: string): string[] {
+  const row = queryOne<{ image_url: string | null }>(
+    "SELECT image_url FROM products WHERE slug = ?",
+    slug,
+  );
+  return row ? parseImages(row.image_url) : [];
+}
+
+/** Appends. Returns false when the product is missing or already full. */
+export function addProductImage(slug: string, url: string): boolean {
+  const current = productImages(slug);
+  if (current.length >= MAX_PRODUCT_IMAGES) return false;
+  if (current.includes(url)) return true;
+  return writeImages(slug, [...current, url]);
+}
+
+/** Removes one image. Passing null clears them all. */
+export function removeProductImage(slug: string, url: string | null): boolean {
+  if (url === null) return writeImages(slug, []);
+  return writeImages(slug, productImages(slug).filter((u) => u !== url));
+}
+
+/**
+ * Moves an image one place earlier or later.
+ *
+ * Order is the gallery order, and the first image is what shop tiles and
+ * the cart show — so "make this the main photo" is just moving it to the
+ * front.
+ */
+export function moveProductImage(slug: string, url: string, delta: -1 | 1): boolean {
+  const list = productImages(slug);
+  const i = list.indexOf(url);
+  if (i < 0) return false;
+  const j = Math.min(Math.max(i + delta, 0), list.length - 1);
+  if (i === j) return true;
+  const next = [...list];
+  next.splice(j, 0, next.splice(i, 1)[0]);
+  return writeImages(slug, next);
+}
+
+/** Replaces the whole set. Used by the create-product flow. */
+export function setProductImage(slug: string, url: string | null): boolean {
+  return writeImages(slug, url ? [url] : []);
 }
 
 export function updateInventory(

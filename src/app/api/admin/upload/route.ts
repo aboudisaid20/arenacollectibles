@@ -4,7 +4,10 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import { getCurrentUser } from "@/lib/auth";
 import { liveProduct } from "@/lib/store";
-import { setProductImage } from "@/lib/store";
+import {
+  addProductImage, removeProductImage, moveProductImage,
+  productImages, MAX_PRODUCT_IMAGES,
+} from "@/lib/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -77,6 +80,16 @@ export async function POST(request: Request) {
     );
   }
 
+  if (productImages(slug).length >= MAX_PRODUCT_IMAGES) {
+    return NextResponse.json(
+      {
+        error: "too_many",
+        message: `That product already has ${MAX_PRODUCT_IMAGES} photos. Remove one first.`,
+      },
+      { status: 409 },
+    );
+  }
+
   const bytes = Buffer.from(await file.arrayBuffer());
 
   // Verify the magic bytes actually match the declared type — the
@@ -104,9 +117,19 @@ export async function POST(request: Request) {
   await fs.writeFile(dest, bytes);
 
   const url = `/uploads/${filename}`;
-  setProductImage(slug, url);
+  if (!addProductImage(slug, url)) {
+    // Written to disk already, but not recorded — the cap is the only
+    // way this fails, and the orphan is harmless.
+    return NextResponse.json(
+      {
+        error: "too_many",
+        message: `That product already has ${MAX_PRODUCT_IMAGES} photos. Remove one first.`,
+      },
+      { status: 409 },
+    );
+  }
 
-  return NextResponse.json({ ok: true, url });
+  return NextResponse.json({ ok: true, url, images: productImages(slug) });
 }
 
 export async function DELETE(request: Request) {
@@ -119,10 +142,12 @@ export async function DELETE(request: Request) {
   if (!liveProduct(slug)) {
     return NextResponse.json({ error: "unknown_product" }, { status: 400 });
   }
-  // The row is cleared; the file is left on disk rather than risking a
-  // delete driven by a database value.
-  setProductImage(slug, null);
-  return NextResponse.json({ ok: true });
+  // `url` removes one photo; without it the whole set is cleared. The
+  // files are left on disk rather than risking a delete driven by a
+  // database value.
+  const url = searchParams.get("url");
+  removeProductImage(slug, url && url.startsWith("/uploads/") ? url : null);
+  return NextResponse.json({ ok: true, images: productImages(slug) });
 }
 
 /** Magic-byte sniff for the four allowed formats. */
@@ -144,4 +169,32 @@ function looksLikeImage(b: Buffer, mime: string): boolean {
     default:
       return false;
   }
+}
+
+/**
+ * Reorders one photograph within a product.
+ *
+ * `dir` is -1 or 1. The first image is what shop tiles and cart lines
+ * show, so moving one to the front is how you choose the main photo.
+ */
+export async function PATCH(request: Request) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const slug = String(searchParams.get("slug") ?? "");
+  const url = String(searchParams.get("url") ?? "");
+  const dir = Number(searchParams.get("dir"));
+
+  if (!liveProduct(slug)) {
+    return NextResponse.json({ error: "unknown_product" }, { status: 400 });
+  }
+  if (!url.startsWith("/uploads/") || (dir !== -1 && dir !== 1)) {
+    return NextResponse.json({ error: "bad_request" }, { status: 400 });
+  }
+
+  moveProductImage(slug, url, dir as -1 | 1);
+  return NextResponse.json({ ok: true, images: productImages(slug) });
 }
