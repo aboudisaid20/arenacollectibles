@@ -62,7 +62,7 @@ export function Hero() {
     <div ref={root}>
       <PointerTrail
         slides={slides}
-        className="bleed-under-header min-h-[86svh] border-b border-line bg-void md:min-h-[92svh]"
+        className="bleed-under-header min-h-hero border-b border-line bg-void"
         cellWidth={338}
         cellHeight={338}
         spacing={59}
@@ -71,7 +71,7 @@ export function Hero() {
         {/* Bottom-aligned at every size now, sitting close to the ticker
             below. Everything is pushed down so the trail owns the space
             above it. */}
-        <div className="container-page flex min-h-[86svh] flex-col justify-end pb-8 pt-24 md:min-h-[92svh] md:pb-10">
+        <div className="container-page flex min-h-hero flex-col justify-end pb-8 pt-24 md:pb-10">
           {/* Optical alignment. All three boxes already sit on the same
               x, but glyphs do not start at their box edge: measured
               against the button's hard block edge, Anton's "E" at hero

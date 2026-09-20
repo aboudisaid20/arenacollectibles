@@ -57,7 +57,7 @@ export function CartDrawer() {
         // React 19 supports `inert` as a real boolean — passing "" makes
         // React treat it as false, which silently leaves the panel tabbable.
         inert={!drawerOpen}
-        className={`fixed right-0 top-0 z-[110] flex h-dvh w-full max-w-[26rem] flex-col border-l border-line bg-void shadow-2xl transition-transform duration-[340ms] ease-[cubic-bezier(.22,1,.36,1)] focus:outline-none ${
+        className={`fixed right-0 top-0 z-[110] flex h-screen-d w-full max-w-[26rem] flex-col border-l border-line bg-void shadow-2xl transition-transform duration-[340ms] ease-[cubic-bezier(.22,1,.36,1)] focus:outline-none ${
           drawerOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >

@@ -188,7 +188,7 @@ export function SiteHeader({ isAdmin = false }: { isAdmin?: boolean }) {
         aria-labelledby="site-menu-title"
         tabIndex={-1}
         inert={!menuOpen}
-        className={`fixed left-0 top-0 z-[130] flex h-dvh w-full max-w-[32rem] flex-col border-r border-line bg-void transition-transform duration-[340ms] ease-[cubic-bezier(.22,1,.36,1)] focus:outline-none ${
+        className={`fixed left-0 top-0 z-[130] flex h-screen-d w-full max-w-[32rem] flex-col border-r border-line bg-void transition-transform duration-[340ms] ease-[cubic-bezier(.22,1,.36,1)] focus:outline-none ${
           menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

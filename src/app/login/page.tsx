@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="container-page flex min-h-[80svh] items-center py-16">
+    <div className="container-page flex min-h-panel items-center py-16">
       <div className="mx-auto w-full max-w-md">
         <p className="kicker text-volt">Staff access</p>
         <h1 className="mt-4 text-[clamp(2.6rem,9vw,4.5rem)] leading-[0.86] text-chalk">

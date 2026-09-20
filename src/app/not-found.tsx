@@ -2,7 +2,7 @@ import { ButtonLink } from "@/components/ui";
 
 export default function NotFound() {
   return (
-    <div className="container-page flex min-h-[70svh] flex-col items-center justify-center py-28 text-center">
+    <div className="container-page flex min-h-notfound flex-col items-center justify-center py-28 text-center">
       <p className="kicker text-volt">404</p>
       <h1 className="mt-5 text-[clamp(3rem,12vw,9rem)] leading-[0.85] text-chalk">
         Out of bounds

@@ -300,7 +300,7 @@ export function ShopBrowser({
           Cart controls stay on top of it. */}
       <aside
         aria-labelledby="shop-filters-heading"
-        className="fixed left-0 top-0 z-30 hidden h-dvh w-[32rem] border-r border-line bg-void xl:block"
+        className="fixed left-0 top-0 z-30 hidden h-screen-d w-[32rem] border-r border-line bg-void xl:block"
       >
         {/* Scrim for the Menu button, the width of the rail and nothing
             more. Fades in only once the rail has actually scrolled, so a
@@ -402,7 +402,7 @@ export function ShopBrowser({
         // React 19 treats inert="" as false, which would leave the closed
         // panel tabbable.
         inert={!filtersOpen}
-        className={`fixed left-0 top-0 z-[110] flex h-dvh w-full max-w-[32rem] flex-col border-r border-line bg-void transition-transform duration-[340ms] ease-[cubic-bezier(.22,1,.36,1)] focus:outline-none xl:hidden ${
+        className={`fixed left-0 top-0 z-[110] flex h-screen-d w-full max-w-[32rem] flex-col border-r border-line bg-void transition-transform duration-[340ms] ease-[cubic-bezier(.22,1,.36,1)] focus:outline-none xl:hidden ${
           filtersOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

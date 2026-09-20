@@ -178,6 +178,37 @@
 }
 
 @layer utilities {
+  /* ---------- Viewport-height fallbacks ------------------------------
+     svh and dvh need Chrome 108+, which is roughly Samsung Internet 21.
+     Older engines drop the whole declaration as invalid, so a hero with
+     only `min-height: 86svh` ends up with no height at all: it collapses
+     and its content slides under the fixed header.
+
+     The plain-vh value is the base rule and the newer unit is applied
+     inside @supports. Writing them as two declarations on one selector
+     does not survive the build — Lightning CSS treats the first as a
+     redundant duplicate and removes it, which is exactly the fallback
+     older browsers need. Separate rules cannot be collapsed that way. */
+  .h-screen-d { height: 100vh; }
+  .min-h-hero { min-height: 86vh; }
+  .min-h-panel { min-height: 80vh; }
+  .min-h-notfound { min-height: 70vh; }
+
+  @media (min-width: 768px) {
+    .min-h-hero { min-height: 92vh; }
+  }
+
+  @supports (height: 1svh) {
+    .h-screen-d { height: 100dvh; }
+    .min-h-hero { min-height: 86svh; }
+    .min-h-panel { min-height: 80svh; }
+    .min-h-notfound { min-height: 70svh; }
+
+    @media (min-width: 768px) {
+      .min-h-hero { min-height: 92svh; }
+    }
+  }
+
   .container-page {
     width: 100%;
     max-width: 90rem;
