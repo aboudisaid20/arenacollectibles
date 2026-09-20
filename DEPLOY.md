@@ -47,6 +47,7 @@ every uploaded photo.
 | `SESSION_SECRET` | `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` |
 | `ADMIN_EMAIL` | the address you will sign in with |
 | `ADMIN_PASSWORD` | 12+ characters, from a password manager |
+| `NEXT_PUBLIC_SITE_URL` | `https://arenacollectibles.co` (add once DNS resolves) |
 
 `ADMIN_PASSWORD` is mandatory in production — the app refuses to boot
 rather than seed itself with the development password. It is read only
@@ -82,18 +83,40 @@ Railway gives you a `*.up.railway.app` URL. Check before touching DNS:
 
 ## 6. Domain
 
-Add the domain in Railway; it returns a DNS target. Then in Namecheap
-under **Advanced DNS**:
+The domain is **arenacollectibles.co**, registered at Namecheap.
 
-| Type | Host | Value |
-| --- | --- | --- |
-| CNAME | `www` | the Railway target |
-| ALIAS | `@` | the Railway target |
+In Railway: **Settings → Networking → Custom Domain**. Add both
+`arenacollectibles.co` and `www.arenacollectibles.co`. Railway returns a
+target hostname ending in `.up.railway.app` for each — copy them.
 
-A CNAME is not legal at the zone root, which is what the ALIAS record is
-for. Namecheap supports it; some registrars do not.
+Then Namecheap → **Domain List → Manage → Advanced DNS**. Delete the two
+parking records Namecheap adds by default (a CNAME on `www` pointing at
+`parkingpage.namecheap.com`, and a URL Redirect on `@`), then add:
 
-HTTPS is issued automatically once DNS resolves. Usually 15–30 minutes.
+| Type | Host | Value | TTL |
+| --- | --- | --- | --- |
+| ALIAS Record | `@` | the Railway target for the root | Automatic |
+| CNAME Record | `www` | the Railway target for www | Automatic |
+
+A CNAME is not legal at the zone apex, which is what the ALIAS record is
+for. Namecheap supports it; several registrars do not.
+
+Leave **Namecheap BasicDNS** as the nameserver set. Do not switch to
+custom nameservers — the records above are all that is needed.
+
+HTTPS is issued automatically once DNS resolves, usually within 15–30
+minutes. Check with:
+
+```bash
+dig +short arenacollectibles.co
+dig +short www.arenacollectibles.co
+```
+
+Both should return a Railway address. Until they do, the site answers on
+its `*.up.railway.app` URL.
+
+Set `NEXT_PUBLIC_SITE_URL=https://arenacollectibles.co` in Railway once
+the domain resolves, so link previews and canonical URLs use it.
 
 ---
 

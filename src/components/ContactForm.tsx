@@ -122,8 +122,8 @@ export function ContactForm({ subject }: { subject?: string }) {
               Try again
             </button>
             , or email{" "}
-            <a href="mailto:hello@arenacollectibles.example" className="break-token underline underline-offset-4">
-              hello@arenacollectibles.example
+            <a href="mailto:hello@arenacollectibles.co" className="break-token underline underline-offset-4">
+              hello@arenacollectibles.co
             </a>.
           </span>
         </p>

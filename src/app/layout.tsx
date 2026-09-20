@@ -34,7 +34,11 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://arenacollectibles.example"),
+  // Absolute base for Open Graph and canonical URLs. Overridable per
+  // environment so a preview deploy does not advertise the live domain.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://arenacollectibles.co",
+  ),
   title: {
     default: "ARENA Collectibles — Graded Cards, Sealed Wax & Signed",
     template: "%s · ARENA",

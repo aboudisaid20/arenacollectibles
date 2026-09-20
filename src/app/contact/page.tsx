@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const DETAILS = [
-  { Icon: EnvelopeSimple, label: "Email", value: "hello@arenacollectibles.example", href: "mailto:hello@arenacollectibles.example" },
+  { Icon: EnvelopeSimple, label: "Email", value: "hello@arenacollectibles.co", href: "mailto:hello@arenacollectibles.co" },
   { Icon: Phone, label: "Phone", value: "+44 20 7000 0000", href: "tel:+442070000000" },
   { Icon: MapPin, label: "Viewings", value: "London · New York, by appointment" },
   { Icon: Clock, label: "Reply time", value: "Within one business day" },

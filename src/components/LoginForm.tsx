@@ -58,19 +58,25 @@ export function LoginForm() {
         )}
       </Button>
 
-      <div className="border border-line bg-pitch p-4">
-        <p className="kicker text-volt">Demo accounts</p>
-        <dl className="mt-3 space-y-2 font-mono text-[0.72rem] leading-relaxed text-fog">
-          <div>
-            <dt className="text-chalk">Admin</dt>
-            <dd className="break-token">admin@arena.test · arena-admin-2026</dd>
-          </div>
-          <div>
-            <dt className="text-chalk">Customer (gets redirected)</dt>
-            <dd className="break-token">customer@arena.test · arena-customer-2026</dd>
-          </div>
-        </dl>
-      </div>
+      {/* Development only. These are the seeded local accounts, and a
+          public login page is the last place credentials belong — the
+          check is on NODE_ENV rather than a prop so it cannot be switched
+          on by accident in a deployed build. */}
+      {process.env.NODE_ENV !== "production" && (
+        <div className="border border-line bg-pitch p-4">
+          <p className="kicker text-volt">Demo accounts · local only</p>
+          <dl className="mt-3 space-y-2 font-mono text-[0.72rem] leading-relaxed text-fog">
+            <div>
+              <dt className="text-chalk">Admin</dt>
+              <dd className="break-token">admin@arena.test · arena-admin-2026</dd>
+            </div>
+            <div>
+              <dt className="text-chalk">Customer (gets redirected)</dt>
+              <dd className="break-token">customer@arena.test · arena-customer-2026</dd>
+            </div>
+          </dl>
+        </div>
+      )}
     </form>
   );
 }
