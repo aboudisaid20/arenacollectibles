@@ -16,7 +16,9 @@ import { PRODUCTS } from "./products";
  * must not open a second handle to the same file.
  */
 
-const DB_PATH = path.join(process.cwd(), ".data", "arena.db");
+// Resolved in storage.ts, so the database and the uploads folder sit
+// under the same single volume a host like Railway allows.
+import { DB_PATH } from "./storage";
 
 declare global {
   // eslint-disable-next-line no-var

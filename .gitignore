@@ -9,6 +9,5 @@ next-env.d.ts
 # local database
 .data
 
-# admin-uploaded product images
-public/uploads/*
-!public/uploads/.gitkeep
+# admin-uploaded product images now live in .data/uploads, on the same
+# persistent volume as the database — see src/lib/storage.ts

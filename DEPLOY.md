@@ -26,15 +26,26 @@ It reads `railway.json` and builds with `npm ci && npm run build`.
 
 ## 3. Attach a volume — do not skip this
 
-**Settings → Volumes**, add one mount for each path:
+Railway allows exactly one volume per service — "Each service can only
+have a single volume" — so the database and the uploaded photographs
+share it. **Settings → Volumes → Add Volume**, mount path:
 
-| Mount path        | Holds                                  |
-| ----------------- | -------------------------------------- |
-| `/app/.data`      | catalogue, orders, promo codes         |
-| `/app/public/uploads` | product photos uploaded in admin   |
+```
+/app/.data
+```
 
-Without these, every deploy resets the shop to its seed data and drops
-every uploaded photo.
+That single mount holds the catalogue, orders, promo codes and every
+product photo uploaded through the admin panel. Without it, each deploy
+resets the shop to its seed data and drops the photos.
+
+The uploads folder deliberately sits inside the volume rather than under
+`public/`, because anything in `public/` is served as a static file and
+that would publish `arena.db` to anyone who guessed the name. Images are
+streamed by the `/uploads` route handler instead, which serves only known
+image extensions from that one directory.
+
+To put the volume somewhere else, set `DATA_DIR` to the mount path and
+the database and uploads both follow it.
 
 ## 4. Environment variables
 
@@ -48,6 +59,7 @@ every uploaded photo.
 | `ADMIN_EMAIL` | the address you will sign in with |
 | `ADMIN_PASSWORD` | 12+ characters, from a password manager |
 | `NEXT_PUBLIC_SITE_URL` | `https://arenacollectibles.co` (add once DNS resolves) |
+| `DATA_DIR` | only if the volume is mounted somewhere other than `/app/.data` |
 
 `ADMIN_PASSWORD` is mandatory in production — the app refuses to boot
 rather than seed itself with the development password. It is read only
@@ -80,6 +92,7 @@ Railway gives you a `*.up.railway.app` URL. Check before touching DNS:
 - the shop lists products
 - `/admin` redirects you to sign in, and your new password works
 - adding a product in admin, then redeploying, keeps it (proves the volume)
+- uploading a photo, then redeploying, still shows it
 
 ## 6. Domain
 

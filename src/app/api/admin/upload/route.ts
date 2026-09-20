@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
  *    "../../server.js" must not be able to escape the upload directory)
  *  - size is capped before anything is written to disk
  *
- * Files land in public/uploads. That works locally and on any normal Node
+ * Files land in the DATA_DIR volume, not public/. That works locally and
  * host; on a read-only filesystem (Vercel) swap the write below for S3 /
  * Vercel Blob and return the resulting URL — nothing else changes.
  */
@@ -33,7 +33,9 @@ const ALLOWED: Record<string, string> = {
   "image/avif": ".avif",
 };
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
+// Outside public/ on purpose — see storage.ts. Served by the /uploads
+// route handler, which is what keeps the database beside it unreachable.
+import { UPLOAD_DIR } from "@/lib/storage";
 
 export async function POST(request: Request) {
   const user = await getCurrentUser();
